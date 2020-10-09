@@ -16,12 +16,30 @@ enum DiceLevel: CGFloat {
 
 class GameScene: SKScene {
 
+	var diceList = [Dice]()
+	var countArea: SKSpriteNode?
+	var pointLabel: SKLabelNode?
+
 	override func didMove(to view: SKView) {
 
 		let bg = SKSpriteNode(imageNamed: "bg_blank")
 		bg.anchorPoint = CGPoint.zero
 		bg.position = CGPoint.zero
 		addChild(bg)
+
+		let countArea = SKSpriteNode(imageNamed: "countBg")
+		countArea.position = CGPoint(x: 10, y: 300)
+		countArea.size = CGSize(width: self.size.width, height: 250)
+		addChild(countArea)
+		self.countArea = countArea
+
+		let label = SKLabelNode()
+		label.text = "0 Points"
+		label.fontSize = 65
+		label.fontColor = SKColor.white
+		label.position = CGPoint(x: 150, y: 350)
+		addChild(label)
+		self.pointLabel = label
 
 		addDice(x: 100, y: 100)
 		addDice(x: 50, y: 50)
@@ -51,11 +69,11 @@ class GameScene: SKScene {
 		for touch in touches {
 			let location = touch.location(in: self)
 			if let dice = atPoint(location) as? Dice {
-                
-                if touch.tapCount > 1 {
-                    dice.roll()
-                }
-                
+
+				if touch.tapCount > 1 {
+					dice.roll()
+				}
+
 				dice.zPosition = DiceLevel.board.rawValue
 				dice.removeFromParent()
 				addChild(dice)
@@ -63,13 +81,25 @@ class GameScene: SKScene {
 				dice.run(SKAction.scale(to: 1.0, duration: 0.15), withKey: "drop")
 			}
 		}
+		calcPoints()
 	}
 
 	// MARK: - PRIVATE
-	fileprivate func addDice(x: Int, y: Int) {
+	private func addDice(x: Int, y: Int) {
 		let dice = Dice()
 		dice.position = CGPoint(x: x, y: y)
 		addChild(dice)
+		self.diceList.append(dice)
+	}
+
+	private func calcPoints() {
+		var points = 0
+		diceList.forEach {
+			if countArea?.intersects($0) ?? false {
+				points += $0.value
+			}
+		}
+		pointLabel?.text = "\(points) Points"
 	}
 
 }
